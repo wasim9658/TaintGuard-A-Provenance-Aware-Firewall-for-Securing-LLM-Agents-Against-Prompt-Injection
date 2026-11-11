@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>erpguard dashboard</title>
+<style>
+:root{--bg:#fff;--fg:#1b1c20;--mut:#6b6e76;--card:#f3f4f6;--bd:#d9dbe0;--red:#c0392b;--grn:#1e8449;--amb:#b9770e;--mk:#ffe08a}
+@media(prefers-color-scheme:dark){:root{--bg:#14151a;--fg:#e9eaee;--mut:#9a9da6;--card:#1f2127;--bd:#363944;--red:#ff7b6b;--grn:#5fd18a;--amb:#f0b35a;--mk:#6b5500}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 system-ui,sans-serif}
+header{display:flex;gap:16px;align-items:center;flex-wrap:wrap;padding:12px 20px;border-bottom:1px solid var(--bd)}
+header a{color:var(--fg);text-decoration:none;padding:4px 8px;border-radius:6px}header a:hover{background:var(--card)}
+main{max-width:1000px;margin:0 auto;padding:20px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:24px}
+.card{background:var(--card);border-radius:10px;padding:14px}.card b{display:block;font-size:28px}.card span{color:var(--mut);font-size:13px}
+table{border-collapse:collapse;width:100%;display:block;overflow-x:auto}td,th{padding:6px 10px;border-bottom:1px solid var(--bd);text-align:left;white-space:nowrap}
+.block{color:var(--red)}.allow{color:var(--grn)}.confirm{color:var(--amb)}
+pre{background:var(--card);padding:12px;border-radius:8px;white-space:pre-wrap;overflow-x:auto}mark{background:var(--mk);color:inherit;padding:0 2px;border-radius:3px}
+.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px}select{font:inherit;padding:3px}
+</style></head><body>
+<header><b>erpguard</b><a href="/?mode={{mode}}">Summary</a><a href="/events?mode={{mode}}">Events</a><a href="/compare">Compare modes</a>
+<form style="margin-left:auto"><label>mode <select name="mode" onchange="this.form.submit()">{% for m in modes %}<option {{'selected' if m==mode}}>{{m}}</option>{% endfor %}</select></label></form></header>
+<main>
+{% if not modes %}<p>No events yet. Run <code>python -m evaluation.run_eval</code> first.</p>
+{% elif view=='index' %}
+<h2>Mode: {{mode}}</h2>
+<div class="cards">
+<div class="card"><b class="block">{{s.blocked_attacks}}</b><span>attack calls blocked</span></div>
+<div class="card"><b>{{s.attack_calls_allowed}}</b><span>attack calls that got through</span></div>
+<div class="card"><b class="allow">{{s.benign_allowed}}</b><span>benign calls allowed</span></div>
+<div class="card"><b class="confirm">{{s.confirms}}</b><span>CONFIRM prompts (benign)</span></div>
+<div class="card"><b class="block">{{s.overblocks}}</b><span>benign calls over-blocked</span></div></div>
+<div class="row"><div><h3>Blocked by tool</h3><canvas id="t"></canvas></div><div><h3>Blocked by untrusted source</h3><canvas id="s"></canvas></div></div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+fetch('/api/stats?mode={{mode}}').then(r=>r.json()).then(d=>{
+ const mk=(id,o)=>new Chart(document.getElementById(id),{type:'bar',data:{labels:Object.keys(o),datasets:[{data:Object.values(o),label:'blocked'}]},options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{precision:0}}}}});
+ mk('t',d.by_tool);mk('s',d.by_source);});
+</script>
+{% elif view=='events' %}
+<h2>Events ({{mode}})</h2>
+<p>Filter: <a href="?mode={{mode}}&kind=attack">attacks</a> · <a href="?mode={{mode}}&kind=benign">benign</a> · <a href="?mode={{mode}}&verdict=block">blocked</a> · <a href="?mode={{mode}}">all</a></p>
+<table><tr><th>#</th><th>kind</th><th>task</th><th>tool</th><th>verdict</th><th>sources</th></tr>
+{% for r in rows %}<tr><td><a href="/event/{{r.id}}">{{r.id}}</a></td><td>{{r.kind}}</td><td>{{r.task_id}}</td><td>{{r.tool}}</td>
+<td class="{{r.verdict}}">{{r.verdict}}</td><td>{{(r.sources|fromjson)|join(', ')}}</td></tr>{% endfor %}</table>
+{% elif view=='event' %}
+<h2>Event #{{e.id}} <span class="{{e.verdict}}">{{e.verdict|upper}}</span></h2>
+<p><b>User asked:</b> {{e.user_msg}}</p>
+<p><b>Agent tried:</b> <code>{{e.tool}}({{e.args}})</code> &nbsp; mode <code>{{e.mode}}</code>, {{e.kind}}</p>
+<h3>Why</h3><ul>{% for r in e.reasons|fromjson %}<li>{{r}}</li>{% endfor %}</ul>
+{% if e.snippet %}<h3>Untrusted text that influenced it</h3><pre>{{ e.snippet|highlight(e.args) }}</pre>{% endif %}
+{% elif view=='compare' %}
+<h2>Defense comparison</h2>
+{% if not res %}<p>Run <code>python -m evaluation.run_eval</code> to generate results.</p>{% else %}
+<table><tr><th>mode</th><th>ASR</th><th>utility under attack</th><th>clean done</th><th>mixed done</th><th>mixed over-block</th><th>stranded</th><th>CONFIRM</th><th>µs/check</th></tr>
+{% for k,m in res.items() %}<tr><td><b>{{k}}</b></td><td>{{'%.0f'|format(m.attack.asr*100)}}% ({{'%.0f'|format(m.attack.asr_ci[0]*100)}}–{{'%.0f'|format(m.attack.asr_ci[1]*100)}})</td>
+<td>{{'%.0f'|format(m.attack.utility_under_attack*100)}}%</td><td>{{'%.0f'|format(m.clean.completion*100)}}%</td><td>{{'%.0f'|format(m.mixed.completion*100)}}%</td>
+<td>{{'%.0f'|format(m.mixed.overblock*100)}}%</td><td>{{'%.0f'|format(m.mixed.stranded*100)}}%</td><td>{{'%.0f'|format(m.mixed.confirm*100)}}%</td><td>{{'%.0f'|format(m.latency_us_per_check)}}</td></tr>{% endfor %}</table>{% endif %}
+{% endif %}
+</main></body></html>

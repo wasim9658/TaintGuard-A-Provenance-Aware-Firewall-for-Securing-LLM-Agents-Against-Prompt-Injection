@@ -1,0 +1,158 @@
+{
+ "none": {
+  "clean": {
+   "n": 8,
+   "completion": 1.0,
+   "overblock": 0.0,
+   "stranded": 0.0,
+   "confirm": 0.0
+  },
+  "mixed": {
+   "n": 12,
+   "completion": 1.0,
+   "overblock": 0.0,
+   "stranded": 0.0,
+   "confirm": 0.0
+  },
+  "attack": {
+   "n": 24,
+   "asr": 1.0,
+   "asr_ci": [
+    0.8620194241710247,
+    1.0000000000000002
+   ],
+   "utility_under_attack": 1.0
+  },
+  "latency_us_per_check": 1.3596495192726714
+ },
+ "keyword": {
+  "clean": {
+   "n": 8,
+   "completion": 1.0,
+   "overblock": 0.0,
+   "stranded": 0.0,
+   "confirm": 0.0
+  },
+  "mixed": {
+   "n": 12,
+   "completion": 1.0,
+   "overblock": 0.0,
+   "stranded": 0.0,
+   "confirm": 0.0
+  },
+  "attack": {
+   "n": 24,
+   "asr": 0.75,
+   "asr_ci": [
+    0.5510017468789357,
+    0.8800079652065768
+   ],
+   "utility_under_attack": 0.75
+  },
+  "latency_us_per_check": 1.2937489373143762
+ },
+ "coarse": {
+  "clean": {
+   "n": 8,
+   "completion": 1.0,
+   "overblock": 0.0,
+   "stranded": 0.0,
+   "confirm": 0.0
+  },
+  "mixed": {
+   "n": 12,
+   "completion": 0.08333333333333333,
+   "overblock": 0.9166666666666666,
+   "stranded": 0.9166666666666666,
+   "confirm": 0.0
+  },
+  "attack": {
+   "n": 24,
+   "asr": 0.0,
+   "asr_ci": [
+    0.0,
+    0.13798057582897535
+   ],
+   "utility_under_attack": 1.0
+  },
+  "latency_us_per_check": 5.454386905113464
+ },
+ "match": {
+  "clean": {
+   "n": 8,
+   "completion": 1.0,
+   "overblock": 0.0,
+   "stranded": 0.0,
+   "confirm": 0.0
+  },
+  "mixed": {
+   "n": 12,
+   "completion": 1.0,
+   "overblock": 0.0,
+   "stranded": 0.0,
+   "confirm": 0.08333333333333333
+  },
+  "attack": {
+   "n": 24,
+   "asr": 0.125,
+   "asr_ci": [
+    0.043442550393155845,
+    0.3100428814785757
+   ],
+   "utility_under_attack": 1.0
+  },
+  "latency_us_per_check": 18.894737494472217
+ },
+ "hybrid-nodecl": {
+  "clean": {
+   "n": 8,
+   "completion": 0.875,
+   "overblock": 0.125,
+   "stranded": 0.125,
+   "confirm": 0.0
+  },
+  "mixed": {
+   "n": 12,
+   "completion": 0.5,
+   "overblock": 0.5,
+   "stranded": 0.5,
+   "confirm": 0.0
+  },
+  "attack": {
+   "n": 24,
+   "asr": 0.0,
+   "asr_ci": [
+    0.0,
+    0.13798057582897535
+   ],
+   "utility_under_attack": 1.0
+  },
+  "latency_us_per_check": 22.877193323597965
+ },
+ "hybrid": {
+  "clean": {
+   "n": 8,
+   "completion": 1.0,
+   "overblock": 0.0,
+   "stranded": 0.0,
+   "confirm": 0.0
+  },
+  "mixed": {
+   "n": 12,
+   "completion": 1.0,
+   "overblock": 0.0,
+   "stranded": 0.0,
+   "confirm": 0.08333333333333333
+  },
+  "attack": {
+   "n": 24,
+   "asr": 0.0,
+   "asr_ci": [
+    0.0,
+    0.13798057582897535
+   ],
+   "utility_under_attack": 1.0
+  },
+  "latency_us_per_check": 19.984209007305797
+ }
+}

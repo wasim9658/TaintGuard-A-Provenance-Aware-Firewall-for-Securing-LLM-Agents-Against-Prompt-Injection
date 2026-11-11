@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "erpguard"
+version = "0.1.0"
+description = "Taint-tracking firewall for LLM agents (college ERP edition)"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+dependencies = ["flask>=3.0"]
+
+[project.optional-dependencies]
+llm = ["langchain>=0.3", "langchain-core", "langchain-openai"]   # swap in your provider's package
+dev = ["pytest"]
+
+[tool.setuptools]
+packages = ["erpguard", "erp", "dashboard", "evaluation"]
+
+[tool.setuptools.package-data]
+dashboard = ["templates/*.html"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
