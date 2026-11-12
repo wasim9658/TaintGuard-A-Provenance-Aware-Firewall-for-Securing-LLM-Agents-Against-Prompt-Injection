@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101827">
+  <title>ERPGuard | Security Dashboard</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg:#0b1220; --panel:#111c2e; --panel2:#172338; --line:#293951;
+      --text:#e8eef8; --muted:#9aabc2; --blue:#65b5ff; --green:#55d69e;
+      --red:#ff786f; --amber:#f4c66b; --purple:#c4a6ff; --shadow:0 12px 30px #0003;
+    }
+    * { box-sizing:border-box; }
+    body { margin:0; background:radial-gradient(ellipse at top,#172944 0,#0b1220 55%); color:var(--text); font:15px/1.55 Inter,Segoe UI,Arial,sans-serif; }
+    a { color:var(--blue); text-decoration:none; }
+    a:hover { text-decoration:underline; }
+    .topbar { position:sticky; top:0; z-index:5; display:flex; align-items:center; gap:22px; flex-wrap:wrap; padding:14px clamp(16px,3vw,38px); background:#0c1626ed; border-bottom:1px solid var(--line); backdrop-filter:blur(12px); }
+    .brand { font-size:20px; font-weight:800; letter-spacing:.2px; color:#fff; margin-right:8px; }
+    .brand-mark { display:inline-grid; place-items:center; width:30px; height:30px; margin-right:8px; border-radius:9px; background:linear-gradient(135deg,#398bff,#8b70ff); }
+    .nav { display:flex; gap:8px; flex-wrap:wrap; }
+    .nav a { padding:7px 11px; border-radius:8px; color:var(--muted); }
+    .nav a:hover,.nav a.active { background:var(--panel2); color:#fff; text-decoration:none; }
+    .top-controls { margin-left:auto; display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+    select { max-width:180px; padding:8px 10px; color:var(--text); background:var(--panel2); border:1px solid var(--line); border-radius:8px; }
+    .clock { color:var(--muted); font-size:13px; white-space:nowrap; }
+    main { width:min(1500px,100%); margin:0 auto; padding:28px clamp(14px,3vw,38px) 60px; }
+    h1 { margin:0 0 6px; font-size:clamp(25px,3vw,34px); letter-spacing:-.6px; }
+    h2 { margin:0 0 16px; font-size:24px; }
+    h3 { margin:22px 0 12px; font-size:17px; }
+    .subtitle { color:var(--muted); margin:0 0 22px; }
+    .section-head { display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap; margin-bottom:18px; }
+    .live { display:inline-flex; align-items:center; gap:9px; color:var(--green); font-weight:650; }
+    .dot { width:9px; height:9px; border-radius:50%; background:var(--green); box-shadow:0 0 0 5px #55d69e20; }
+    .cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:14px; margin:22px 0 28px; }
+    .card,.panel { min-width:0; padding:18px; background:linear-gradient(160deg,var(--panel),#101a2a); border:1px solid var(--line); border-radius:14px; box-shadow:var(--shadow); }
+    .metric { font-size:32px; line-height:1.2; font-weight:800; margin-bottom:7px; }
+    .metric-label { color:var(--muted); font-size:13px; }
+    .red { color:var(--red)!important; } .green { color:var(--green)!important; }
+    .amber { color:var(--amber)!important; } .blue { color:var(--blue)!important; }
+    .purple { color:var(--purple)!important; }
+    .charts { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; }
+    .chart-box { min-height:280px; }
+    .chart-box canvas { width:100%!important; max-height:260px; }
+    .toolbar { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:14px; margin:18px 0; }
+    .filters { display:flex; flex-wrap:wrap; gap:8px; margin:18px 0; }
+    .filters a { padding:8px 12px; border:1px solid var(--line); border-radius:9px; background:var(--panel); color:var(--muted); }
+    .filters a:hover,.filters a.selected { color:#fff; border-color:#4b83c5; background:#1b3453; text-decoration:none; }
+    .muted { color:var(--muted); font-size:13px; }
+    .table-shell { width:100%; max-width:100%; overflow-x:auto; overscroll-behavior-x:contain; border:1px solid var(--line); border-radius:12px; background:var(--panel); }
+    table { width:100%; min-width:980px; border-collapse:separate; border-spacing:0; }
+    th,td { padding:13px 14px; text-align:left; vertical-align:top; border-bottom:1px solid var(--line); }
+    th { position:sticky; top:0; z-index:1; color:#cbd8ea; background:#1a2940; font-size:12px; text-transform:uppercase; letter-spacing:.65px; white-space:nowrap; }
+    td { color:#e2eaf5; }
+    tr:last-child td { border-bottom:0; }
+    tbody tr:hover { background:#ffffff08; }
+    .nowrap { white-space:nowrap; }
+    .wrap { white-space:normal; min-width:140px; max-width:300px; overflow-wrap:anywhere; }
+    .event-id { font-weight:750; }
+    .pill { display:inline-block; padding:4px 9px; border-radius:999px; font-size:11px; font-weight:800; letter-spacing:.5px; background:#ffffff12; }
+    .pill.block { color:var(--red); background:#ff786f18; }
+    .pill.allow { color:var(--green); background:#55d69e18; }
+    .pill.confirm { color:var(--amber); background:#f4c66b18; }
+    .pill.observed { color:var(--blue); background:#65b5ff18; }
+    .empty { text-align:center; padding:32px; color:var(--muted); }
+    .detail-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+    .detail { padding:13px 15px; background:var(--panel2); border:1px solid var(--line); border-radius:10px; min-width:0; }
+    .detail-label { display:block; margin-bottom:5px; color:var(--muted); font-size:11px; text-transform:uppercase; letter-spacing:.7px; }
+    .detail-value { overflow-wrap:anywhere; }
+    .reason-list { padding-left:22px; }
+    .reason-list li { margin:8px 0; overflow-wrap:anywhere; }
+    pre { max-width:100%; overflow:auto; white-space:pre-wrap; overflow-wrap:anywhere; padding:16px; border-radius:10px; background:#09111e; border:1px solid var(--line); color:#dbe7f7; }
+    code { overflow-wrap:anywhere; }
+    mark { background:#f5d477; color:#211b0b; border-radius:3px; padding:1px 2px; }
+    .back { display:inline-block; margin-top:20px; }
+    .hint { padding:14px 16px; color:var(--muted); background:var(--panel2); border:1px solid var(--line); border-radius:10px; }
+    .status-note { color:var(--muted); font-size:12px; }
+    @media(max-width:760px) {
+      .topbar { gap:10px; } .top-controls { margin-left:0; width:100%; justify-content:space-between; }
+      .charts,.detail-grid { grid-template-columns:1fr; }
+      main { padding-top:22px; }
+      .clock { white-space:normal; }
+    }
+  </style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand"><span class="brand-mark">盾</span>ERPGuard</div>
+  <nav class="nav" aria-label="Main navigation">
+    <a href="/?mode={{ mode|urlencode }}" class="{% if view == 'index' %}active{% endif %}">Summary</a>
+    <a href="/events?mode={{ mode|urlencode }}" class="{% if view == 'events' or view == 'event' %}active{% endif %}">Security Events</a>
+    <a href="/compare?mode={{ mode|urlencode }}" class="{% if view == 'compare' %}active{% endif %}">Compare Modes</a>
+  </nav>
+  <div class="top-controls">
+    <form method="get" action="{{ '/' if view == 'index' else '/events' if view in ['events','event'] else '/compare' }}">
+      <label class="muted" for="mode-select">Firewall mode&nbsp;</label>
+      <select id="mode-select" name="mode" onchange="this.form.submit()">
+        {% for m in modes %}<option value="{{ m }}" {% if m == mode %}selected{% endif %}>{{ m }}</option>{% endfor %}
+      </select>
+    </form>
+    <div class="clock" id="live-clock">Loading IST clock…</div>
+  </div>
+</header>
+
+<main data-mode="{{ mode|e }}">
+{% if view == 'index' %}
+  <div class="section-head">
+    <div><h1>Security overview</h1><p class="subtitle">Firewall activity and audit insights for <strong>{{ mode or 'no mode selected' }}</strong>.</p></div>
+    <div class="live"><span class="dot"></span>Live monitoring</div>
+  </div>
+  <section class="cards" aria-label="Security metrics">
+    <div class="card"><div class="metric red" id="blocked-count">{{ s.blocked_attacks }}</div><div class="metric-label">Attack calls blocked</div></div>
+    <div class="card"><div class="metric red" id="allowed-attacks">{{ s.attack_calls_allowed }}</div><div class="metric-label">Attack calls allowed</div></div>
+    <div class="card"><div class="metric green" id="benign-count">{{ s.benign_allowed }}</div><div class="metric-label">Benign calls allowed</div></div>
+    <div class="card"><div class="metric amber" id="confirm-count">{{ s.confirms }}</div><div class="metric-label">Confirmation required</div></div>
+    <div class="card"><div class="metric red" id="overblock-count">{{ s.overblocks }}</div><div class="metric-label">Benign calls blocked</div></div>
+    <div class="card"><div class="metric blue" id="observed-count">{{ s.observed_inputs }}</div><div class="metric-label">Untrusted inputs observed</div></div>
+  </section>
+  <section class="charts">
+    <div class="panel chart-box"><h3>Blocked actions by tool</h3><canvas id="tool-chart" aria-label="Blocked actions by tool"></canvas><p class="status-note" id="tool-fallback"></p></div>
+    <div class="panel chart-box"><h3>Blocked actions by source</h3><canvas id="source-chart" aria-label="Blocked actions by source"></canvas><p class="status-note" id="source-fallback"></p></div>
+  </section>
+  <p class="hint">An <strong>OBSERVED</strong> event means untrusted content was read and recorded. It is not, by itself, proof that an attack was attempted or blocked.</p>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script>
+    const dashboardMode = document.querySelector('main').dataset.mode;
+    let toolChart = null, sourceChart = null;
+    function makeChart(canvasId, fallbackId, values, existing) {
+      const labels = Object.keys(values || {});
+      const counts = Object.values(values || {});
+      const fallback = document.getElementById(fallbackId);
+      if (!window.Chart) {
+        fallback.textContent = labels.length ? labels.map((x,i) => `${x}: ${counts[i]}`).join(' · ') : 'No blocked events recorded yet.';
+        return existing;
+      }
+      fallback.textContent = labels.length ? '' : 'No blocked events recorded yet.';
+      if (existing) {
+        existing.data.labels = labels; existing.data.datasets[0].data = counts; existing.update('none'); return existing;
+      }
+      return new Chart(document.getElementById(canvasId), {
+        type:'bar',
+        data:{labels, datasets:[{label:'Blocked',data:counts,backgroundColor:'#5ba8f5',borderRadius:6}]},
+        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+          scales:{x:{ticks:{color:'#aabbd0'},grid:{color:'#293951'}},y:{beginAtZero:true,ticks:{precision:0,color:'#aabbd0'},grid:{color:'#293951'}}}}
+      });
+    }
+    async function refreshStats() {
+      try {
+        const response = await fetch('/api/stats?mode=' + encodeURIComponent(dashboardMode || ''), {cache:'no-store'});
+        if (!response.ok) throw new Error('HTTP ' + response.status);
+        const d = await response.json();
+        const pairs = [['blocked-count',d.blocked_attacks],['allowed-attacks',d.attack_calls_allowed],['benign-count',d.benign_allowed],['confirm-count',d.confirms],['overblock-count',d.overblocks],['observed-count',d.observed_inputs]];
+        pairs.forEach(([id,value]) => { const el=document.getElementById(id); if(el) el.textContent=value ?? 0; });
+        toolChart = makeChart('tool-chart','tool-fallback',d.by_tool,toolChart);
+        sourceChart = makeChart('source-chart','source-fallback',d.by_source,sourceChart);
+      } catch(err) { console.error('Stats refresh failed:',err); }
+    }
+    refreshStats(); setInterval(refreshStats,3000);
+  </script>
+
+{% elif view == 'events' %}
+  <div class="section-head">
+    <div><h1>Security events</h1><p class="subtitle">Audit trail for <strong>{{ mode }}</strong> mode. Select an event ID to inspect its details.</p></div>
+    <div class="live"><span class="dot"></span>Live event monitoring</div>
+  </div>
+  <div class="filters">
+    {% set active_kind = request.args.get('kind','') %}
+    {% set active_verdict = request.args.get('verdict','') %}
+    <a class="{% if not active_kind and not active_verdict %}selected{% endif %}" href="/events?mode={{ mode|urlencode }}">All</a>
+    <a class="{% if active_kind == 'attack' %}selected{% endif %}" href="/events?mode={{ mode|urlencode }}&kind=attack">Attacks</a>
+    <a class="{% if active_kind == 'benign' %}selected{% endif %}" href="/events?mode={{ mode|urlencode }}&kind=benign">Benign</a>
+    <a class="{% if active_kind == 'untrusted_input' %}selected{% endif %}" href="/events?mode={{ mode|urlencode }}&kind=untrusted_input">Observed inputs</a>
+    <a class="{% if active_verdict == 'block' %}selected{% endif %}" href="/events?mode={{ mode|urlencode }}&verdict=block">Blocked</a>
+    <a class="{% if active_verdict == 'allow' %}selected{% endif %}" href="/events?mode={{ mode|urlencode }}&verdict=allow">Allowed</a>
+    <a class="{% if active_verdict == 'confirm' %}selected{% endif %}" href="/events?mode={{ mode|urlencode }}&verdict=confirm">Confirm</a>
+  </div>
+  <div class="toolbar"><strong>Total displayed events: <span id="event-count">{{ rows|length }}</span></strong><span class="muted" id="last-updated">Auto-refresh every 3 seconds</span></div>
+  <div class="table-shell">
+    <table>
+      <thead><tr><th>ID</th><th>Date and time (IST)</th><th>Kind</th><th>Task</th><th>Tool</th><th>Verdict</th><th>Source(s)</th></tr></thead>
+      <tbody id="events-body">
+      {% for r in rows %}
+        <tr>
+          <td class="nowrap"><a class="event-id" href="/event/{{ r.id }}">#{{ r.id }}</a></td>
+          <td class="nowrap">{{ r.ts|datetime_ist }}</td>
+          <td class="nowrap">{{ r.kind }}</td>
+          <td class="wrap">{{ r.task_id or '—' }}</td>
+          <td class="nowrap">{{ r.tool or '—' }}</td>
+          <td><span class="pill {{ r.verdict|lower }}">{{ r.verdict|upper }}</span></td>
+          <td class="wrap">{{ (r.sources|fromjson)|join(', ') if r.sources else '—' }}</td>
+        </tr>
+      {% else %}
+        <tr><td colspan="7" class="empty">No events match this filter.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div id="events-data" hidden
+       data-mode="{{ mode|tojson }}"
+       data-kind="{{ request.args.get('kind','')|tojson }}"
+       data-verdict="{{ request.args.get('verdict','')|tojson }}"></div>
+  <script>
+    const eventsData = document.getElementById('events-data');
+    const eventMode = JSON.parse(eventsData.dataset.mode || 'null');
+    const eventKind = JSON.parse(eventsData.dataset.kind || 'null');
+    const eventVerdict = JSON.parse(eventsData.dataset.verdict || 'null');
+    function td(row,value,cls='') { const cell=document.createElement('td'); cell.textContent=value ?? '—'; if(cls) cell.className=cls; row.appendChild(cell); return cell; }
+    function renderEvent(ev) {
+      const row=document.createElement('tr');
+      const id=document.createElement('td'); id.className='nowrap';
+      const a=document.createElement('a'); a.className='event-id'; a.href='/event/'+encodeURIComponent(ev.id); a.textContent='#'+ev.id; id.appendChild(a); row.appendChild(id);
+      td(row,ev.date,'nowrap'); td(row,ev.kind,'nowrap'); td(row,ev.task_id,'wrap'); td(row,ev.tool,'nowrap');
+      const v=td(row,'',''); const pill=document.createElement('span'); pill.className='pill '+String(ev.verdict||'').toLowerCase(); pill.textContent=String(ev.verdict||'').toUpperCase(); v.appendChild(pill);
+      td(row,Array.isArray(ev.sources)?ev.sources.join(', '):'','wrap'); return row;
+    }
+    async function refreshEvents() {
+      try {
+        const p=new URLSearchParams({mode:eventMode||''}); if(eventKind)p.set('kind',eventKind); if(eventVerdict)p.set('verdict',eventVerdict);
+        const res=await fetch('/api/events?'+p.toString(),{cache:'no-store'}); if(!res.ok) throw new Error('HTTP '+res.status);
+        const items=await res.json(); const body=document.getElementById('events-body');
+        const known=new Set(Array.from(body.querySelectorAll('a.event-id')).map(a=>Number(a.textContent.replace('#',''))));
+        const fresh=items.filter(x=>!known.has(Number(x.id))).sort((a,b)=>b.id-a.id);
+        const empty=body.querySelector('.empty'); if(items.length && empty) empty.parentElement.remove();
+        if(!items.length && !body.querySelector('a.event-id')) {
+          body.innerHTML=''; const row=document.createElement('tr'); const cell=td(row,'No events match this filter.','empty'); cell.colSpan=7; body.appendChild(row);
+        }
+        fresh.forEach(ev=>body.insertBefore(renderEvent(ev),body.firstChild));
+        while(body.children.length>100) body.removeChild(body.lastElementChild);
+        document.getElementById('event-count').textContent=Math.min(items.length,100);
+        document.getElementById('last-updated').textContent='Last checked: '+new Date().toLocaleTimeString('en-IN',{timeZone:'Asia/Kolkata'})+' IST';
+      } catch(err) { console.error('Event refresh failed:',err); document.getElementById('last-updated').textContent='Refresh failed; retrying…'; }
+    }
+    refreshEvents(); setInterval(refreshEvents,3000);
+  </script>
+
+{% elif view == 'event' %}
+  <div class="section-head">
+    <div><h1>Event #{{ e.id }}</h1><p class="subtitle">Detailed audit record</p></div>
+    <span class="pill {{ e.verdict|lower }}">{{ e.verdict|upper }}</span>
+  </div>
+  <section class="panel">
+    <div class="detail-grid">
+      <div class="detail"><span class="detail-label">Date and time</span><div class="detail-value">{{ e.ts|datetime_ist }}</div></div>
+      <div class="detail"><span class="detail-label">Firewall mode</span><div class="detail-value">{{ e.mode }}</div></div>
+      <div class="detail"><span class="detail-label">Event type</span><div class="detail-value">{{ e.kind }}</div></div>
+      <div class="detail"><span class="detail-label">Task ID</span><div class="detail-value">{{ e.task_id or '—' }}</div></div>
+      <div class="detail"><span class="detail-label">Agent tool</span><div class="detail-value">{{ e.tool or '—' }}</div></div>
+      <div class="detail"><span class="detail-label">Sources</span><div class="detail-value">{{ (e.sources|fromjson)|join(', ') if e.sources else '—' }}</div></div>
+    </div>
+    <h3>User request</h3><pre>{{ e.user_msg or 'No user request recorded.' }}</pre>
+    <h3>Tool arguments</h3><pre>{{ e.args }}</pre>
+    <h3>Why this event was recorded</h3>
+    {% set reasons = e.reasons|fromjson %}
+    {% if reasons %}
+      <ul class="reason-list">{% for reason in reasons %}<li>{{ reason }}</li>{% endfor %}</ul>
+    {% else %}<p class="muted">No explanation was recorded for this event.</p>{% endif %}
+    {% if e.snippet %}
+      <h3>Relevant content / untrusted text</h3><pre>{{ e.snippet|highlight(e.args) }}</pre>
+    {% endif %}
+  </section>
+  <a class="back" href="/events?mode={{ e.mode|urlencode }}">← Back to security events</a>
+
+{% elif view == 'compare' %}
+  <div class="section-head"><div><h1>Defense comparison</h1><p class="subtitle">Evaluation results across firewall modes.</p></div></div>
+  {% if not res %}
+    <div class="hint">No evaluation results were found. Run <code>python -m evaluation.run_eval</code> and refresh this page.</div>
+  {% else %}
+    <div class="table-shell">
+      <table style="min-width:1050px">
+        <thead><tr><th>Mode</th><th>Attack success rate</th><th>Utility under attack</th><th>Clean completion</th><th>Mixed completion</th><th>Mixed over-block</th><th>Stranded</th><th>Confirm</th><th>µs / check</th></tr></thead>
+        <tbody>
+        {% for k,m in res.items() %}
+          <tr>
+            <td><strong>{{ k }}</strong></td>
+            <td>{{ '%.0f'|format(m.attack.asr*100) }}% <span class="muted">({{ '%.0f'|format(m.attack.asr_ci[0]*100) }}–{{ '%.0f'|format(m.attack.asr_ci[1]*100) }}%)</span></td>
+            <td>{{ '%.0f'|format(m.attack.utility_under_attack*100) }}%</td>
+            <td>{{ '%.0f'|format(m.clean.completion*100) }}%</td>
+            <td>{{ '%.0f'|format(m.mixed.completion*100) }}%</td>
+            <td>{{ '%.0f'|format(m.mixed.overblock*100) }}%</td>
+            <td>{{ '%.0f'|format(m.mixed.stranded*100) }}%</td>
+            <td>{{ '%.0f'|format(m.mixed.confirm*100) }}%</td>
+            <td>{{ '%.0f'|format(m.latency_us_per_check) }}</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <p class="hint">These metrics describe the project's evaluation dataset and test setup; they should not be interpreted as a guarantee against all prompt-injection attacks.</p>
+  {% endif %}
+{% endif %}
+</main>
+<script>
+  async function updateClock() {
+    const node=document.getElementById('live-clock'); if(!node) return;
+    try { const r=await fetch('/api/time',{cache:'no-store'}); if(!r.ok) throw new Error('clock unavailable'); const d=await r.json(); node.textContent=d.date+' · '+d.time+' IST'; }
+    catch(e) { node.textContent='IST clock unavailable'; }
+  }
+  updateClock(); setInterval(updateClock,1000);
+</script>
+</body>
+</html>

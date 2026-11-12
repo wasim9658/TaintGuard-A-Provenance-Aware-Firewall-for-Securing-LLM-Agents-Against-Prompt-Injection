@@ -1,0 +1,8 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {"name": "Run evaluation", "type": "debugpy", "request": "launch", "module": "evaluation.run_eval", "cwd": "${workspaceFolder}"},
+    {"name": "Dashboard", "type": "debugpy", "request": "launch", "module": "dashboard.app", "cwd": "${workspaceFolder}"},
+    {"name": "Pytest", "type": "debugpy", "request": "launch", "module": "pytest", "args": ["-q"], "cwd": "${workspaceFolder}"}
+  ]
+}
