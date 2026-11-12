@@ -1,0 +1,15 @@
+Metadata-Version: 2.4
+Name: erpguard
+Version: 0.1.0
+Summary: Taint-tracking firewall for LLM agents (college ERP edition)
+License: MIT
+Requires-Python: >=3.10
+License-File: LICENSE
+Requires-Dist: flask>=3.0
+Provides-Extra: llm
+Requires-Dist: langchain>=0.3; extra == "llm"
+Requires-Dist: langchain-core; extra == "llm"
+Requires-Dist: langchain-openai; extra == "llm"
+Provides-Extra: dev
+Requires-Dist: pytest; extra == "dev"
+Dynamic: license-file
